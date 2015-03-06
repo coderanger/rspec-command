@@ -66,6 +66,12 @@ module RSpecCommand
 
   # Matcher to compare files or folders from the temporary directory to a
   # fixture.
+  #
+  # @example
+  #   describe 'myapp' do
+  #     command 'myapp write'
+  #     it { is_expected.to match_fixture('write_data') }
+  #   end
   def match_fixture(fixture_path, local_path=nil)
     MatchFixture.new(find_fixture(self.class.file_path), temp_path, fixture_path, local_path || fixture_path)
   end
