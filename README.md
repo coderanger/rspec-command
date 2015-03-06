@@ -33,7 +33,7 @@ describe 'myapp' do
 end
 ```
 
-## `command`
+## command
 
 The core helper is `command`. It takes a command to run and sets it as the
 subject for the example group. The command can be given as a string, array, or
@@ -58,7 +58,7 @@ describe 'myapp' do
 end
 ```
 
-## `file`
+## file
 
 The `file` method writes a file in to the temporary directory. You can provide
 the file content as either a string or a block:
@@ -76,7 +76,7 @@ EOH
 end
 ```
 
-## `fixture_file`
+## fixture_file
 
 The `fixture_file` method copies a file or folder from a fixture to the
 temporary directory:
@@ -92,7 +92,7 @@ end
 These fixtures are generally kept in `spec/fixtures` but it can be customized
 by redefining `let(:fixture_root)`.
 
-## `environment`
+## environment
 
 The `environment` method sets environment variables for subprocesses run by
 `command`:
