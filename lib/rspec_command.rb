@@ -93,11 +93,16 @@ module RSpecCommand
   # Find the base folder of the current gem.
   def find_gem_base(example_path)
     @gem_base ||= begin
-      path = [
-        find_file(example_path) {|path| Dir.entries(path).find {|ent| ent.end_with?('.gemspec') } },
-        find_file(example_path, 'Gemfile'),
-      ].find {|v| v }
-      File.dirname(path)
+      paths = []
+      paths << find_file(example_path) do |path|
+        spec_path = Dir.entries(path).find do |ent|
+          ent.end_with?('.gemspec')
+        end
+        spec_path = File.join(path, spec_path) if spec_path
+        spec_path
+      end
+      paths << find_file(example_path, 'Gemfile')
+      File.dirname(paths.find {|v| v })
     end
   end
 
