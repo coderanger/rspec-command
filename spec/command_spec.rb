@@ -63,6 +63,20 @@ describe RSpecCommand do
       before { IO.write(File.join(temp_path, 'file'), '') }
       its(:stdout) { is_expected.to eq "*\n" }
     end # /context echo * without shell
+
+    context 'without a Gemfile' do
+      command 'env'
+      before { allow(self).to receive(:find_file).and_return(nil) }
+      around do |example|
+        begin
+          old_gemfile = ENV.delete('BUNDLE_GEMFILE')
+          example.run
+        ensure
+          ENV['BUNDLE_GEMFILE'] = old_gemfile if old_gemfile
+        end
+      end
+      its(:stdout) { is_expected.to_not include('BUNDLE_GEMFILE') }
+    end # /context without a Gemfile
   end # /describe #command
 
   describe '#file' do
