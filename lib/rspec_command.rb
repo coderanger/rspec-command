@@ -42,26 +42,47 @@ module RSpecCommand
     end
   end
 
+  # @!attribute [r] temp_path
+  # Path to the temporary directory created for the current example.
+  # @return [String]
   let(:temp_path) do |example|
     example.metadata[:rspec_command_temp_path]
   end
 
+  # @!attribute [r] fixture_root
+  # Base path for the fixtures directory. Default value is 'fixtures'.
+  # @return [String]
+  # @example
+  #   let(:fixture_root) { 'data' }
   let(:fixture_root) { 'fixtures' }
 
+  # @!attribute [r] _environment
+  # @!visibility private
+  # Accumulator for environment variables.
+  # @see RSpecCommand.environment
   let(:_environment) { Hash.new }
 
   private
 
-  def find_file(example_path, fixture=nil, backstop=nil, &block)
+  # Search backwards along the working directory looking for a file, a la .git.
+  # Either file or block must be given.
+  #
+  # @param example_path [String] Path of the current example file. Find via
+  #   example.file_path.
+  # @param file [String] Relative path to search for.
+  # @param backstop [String] Path to not search past.
+  # @param block [Proc] Block to use as a filter.
+  # @return [String, nil]
+  def find_file(example_path, file=nil, backstop=nil, &block)
     path = File.dirname(File.expand_path(example_path))
     last_path = nil
     while path != last_path && path != backstop
       if block
-        fixture_path = block.call(path)
-        return fixture_path = fixture_path
+        block_val = block.call(path)
+        return block_val if block_val
       else
-        fixture_path = File.join(path, fixture)
-        return fixture_path if File.exists?(fixture_path)
+        file_path = File.join(path, file)
+        return file_path if File.exists?(file_path)
       end
       last_path = path
       path = File.dirname(path)
@@ -69,6 +90,7 @@ module RSpecCommand
     nil
   end
 
+  # Find the base folder of the current gem.
   def find_gem_base(example_path)
     @gem_base ||= begin
       path = [
@@ -79,12 +101,29 @@ module RSpecCommand
     end
   end
 
+  # Find a fixture file.
   def find_fixture(example_path, path)
     find_file(example_path, File.join(fixture_root, path), find_gem_base(example_path))
   end
 
   # @!classmethods
   module ClassMethods
+    # Run a command as the subject of this example. The command can be passed in
+    # as a string, array, or block. The subject will be a Mixlib::ShellOut
+    # object, all attributes from there will work with rspec-its.
+    #
+    # @param cmd [String, Array] Command to run. If passed as an array, no shell
+    #   expansion will be done.
+    # @param options [Hash<Symbol, Object>] Options to pass to
+    #   Mixlib::ShellOut.new.
+    # @param block [Proc] Optional block to return a command to run.
+    # @option options [Boolean] allow_error If true, don't raise an error on
+    #   failed commands.
+    # @example
+    #   describe 'myapp' do
+    #     command 'myapp show'
+    #     its(:stdout) { is_expected.to match(/a thing/) }
+    #   end
     def command(cmd=nil, options={}, &block)
       subject do |example|
         # If a block is given, use it to get the command.
@@ -117,6 +156,19 @@ module RSpecCommand
       end
     end
 
+    # Create a file in the temporary directory for this example.
+    #
+    # @param path [String] Path within the temporary directory to write to.
+    # @param content [String] File data to write.
+    # @param block [Proc] Optional block to return file data to write.
+    # @example
+    #   describe 'myapp' do
+    #     command 'myapp read data.txt'
+    #     file 'data.txt', <<-EOH
+    #   a thing
+    #   EOH
+    #     its(:exitstatus) { is_expected.to eq 0 }
+    #   end
     def file(path, content=nil, &block)
       raise "file path should be relative the the temporary directory." if path == File.expand_path(path)
       before do
@@ -127,7 +179,18 @@ module RSpecCommand
       end
     end
 
-    def fixture_file(path)
+    # Copy fixture data from the spec folder to the temporary directory for this
+    # example.
+    #
+    # @param path [String] Path of the fixture to copy.
+    # @param dest [String] Optional destination path. By default the destination
+    #   is the same as path.
+    # @example
+    #   describe 'myapp' do
+    #     command 'myapp run test/'
+    #     fixture_file 'test'
+    #     its(:exitstatus) { is_expected.to eq 0 }
+    #   end
     def fixture_file(path, dest=nil)
       raise "file path should be relative the the temporary directory." if path == File.expand_path(path)
       before do |example|
@@ -137,6 +200,15 @@ module RSpecCommand
       end
     end
 
+    # Set an environment variable for this example.
+    #
+    # @param variables [Hash] Key/value pairs to set.
+    # @example
+    #   describe 'myapp' do
+    #     command 'myapp show'
+    #     environment DEBUG: true
+    #     its(:stderr) { is_expected.to include('[debug]') }
+    #   end
     def environment(variables)
       before do
         variables.each do |key, value|
