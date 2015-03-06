@@ -105,6 +105,18 @@ describe 'myapp' do
 end
 ```
 
+## match_fixture
+
+The `match_fixture` matcher lets you check the files created by a command
+against a fixture:
+
+```ruby
+describe 'myapp' do
+  command 'myapp write'
+  it { is_expected.to match_fixture('write_data') }
+end
+```
+
 ## License
 
 Copyright 2015, Noah Kantrowitz
