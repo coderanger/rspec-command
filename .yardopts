@@ -1,0 +1,4 @@
+--plugin classmethods
+--markup markdown
+--hide-void-return
+--exclude lib/rspec_command/version.rb
