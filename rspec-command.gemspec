@@ -44,4 +44,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'yard-classmethods', '~> 1.0'
   spec.add_development_dependency 'codeclimate-test-reporter', '~> 0.4'
   spec.add_development_dependency 'codecov', '~> 0.0', '>= 0.0.2'
+  spec.add_development_dependency 'pry'
 end
