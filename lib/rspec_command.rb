@@ -20,6 +20,8 @@ require 'rspec'
 require 'rspec/its'
 require 'mixlib/shellout'
 
+require 'rspec_command/match_fixture'
+
 # An RSpec helper module for testing command-line tools.
 #
 # @since 1.0.0
@@ -61,6 +63,12 @@ module RSpecCommand
   # Accumulator for environment variables.
   # @see RSpecCommand.environment
   let(:_environment) { Hash.new }
+
+  # Matcher to compare files or folders from the temporary directory to a
+  # fixture.
+  def match_fixture(fixture_path, local_path=nil)
+    MatchFixture.new(find_fixture(self.class.file_path), temp_path, fixture_path, local_path || fixture_path)
+  end
 
   private
 
@@ -106,9 +114,10 @@ module RSpecCommand
     end
   end
 
-  # Find a fixture file.
-  def find_fixture(example_path, path)
-    find_file(example_path, File.join(fixture_root, path), find_gem_base(example_path))
+  # Find a fixture file or the fixture base folder.
+  def find_fixture(example_path, path=nil)
+    @fixture_base ||= find_file(example_path, fixture_root, find_gem_base(example_path))
+    path ? File.join(@fixture_base, path) : @fixture_base
   end
 
   # @!classmethods

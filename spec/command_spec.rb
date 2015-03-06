@@ -192,7 +192,14 @@ describe RSpecCommand do
   end # /describe #find_gem_base
 
   describe '#find_fixture' do
-    subject { find_fixture(__FILE__, 'data.txt') }
-    it { is_expected.to eq File.expand_path('../fixtures/data.txt', __FILE__) }
+    context 'with a fixture file' do
+      subject { find_fixture(__FILE__, 'data.txt') }
+      it { is_expected.to eq File.expand_path('../fixtures/data.txt', __FILE__) }
+    end # /context with a fixture file
+
+    context 'with no fixture path' do
+      subject { find_fixture(__FILE__) }
+      it { is_expected.to eq File.expand_path('../fixtures', __FILE__) }
+    end # /context with no fixture path
   end # /describe #find_fixture
 end
