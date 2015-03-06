@@ -128,10 +128,11 @@ module RSpecCommand
     end
 
     def fixture_file(path)
+    def fixture_file(path, dest=nil)
       raise "file path should be relative the the temporary directory." if path == File.expand_path(path)
       before do |example|
         fixture_path = find_fixture(example.file_path, path)
-        dest_path = File.join(temp_path, path)
+        dest_path = File.join(temp_path, dest || path)
         FileUtils.cp_r(fixture_path, dest_path)
       end
     end
