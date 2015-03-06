@@ -2,7 +2,11 @@ sudo: false
 cache: bundler
 language: ruby
 rvm:
-- "2.0"
-- "2.1"
-- "2.2"
+- '2.0'
+- '2.1'
+- '2.2'
 script: bundle exec rake test
+env:
+  global:
+  - secure: EZt9sRP8CzvkF0uFUinzElrUfuTUT8hOk6iu67JV7JkgzfCAZFj3xP2ZK209ObleRWfNlZ/WBGscFfw4Ipfpagnok+I2HnuDqf/Y/asdnTfWwMN0p4Fa4w1LpHztaIXdOwFAhA8osKHwYVAUbEYeQLmxDfqwvAGT4yfBkPNAVZE=
+  - secure: Xvquws40AzLRRsqhUbMpYCRldbk/zEnpcUXjf8ZKlbaz/kDW/lVhTK/GEPcARuO/H2k/xrgH0tJPlpr1znNLw0W28lDbxHs8RTDJVFALl57ZLn10WsfAzXurWDb/fj0YqN5u1IVxpXuvf07QUBMEq+cVkFau8ncIQjzbU1colJQ=
