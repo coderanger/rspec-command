@@ -49,8 +49,6 @@ module RSpecCommand
           buf << "  #{file} is not found in files\n"
         elsif local_only_files.include?(file)
           buf << "  #{file} is not found in fixture\n"
-        else
-          raise "Unknown file type: #{file}"
         end
       end
       buf
