@@ -202,4 +202,63 @@ describe RSpecCommand do
       it { is_expected.to eq File.expand_path('../fixtures', __FILE__) }
     end # /context with no fixture path
   end # /describe #find_fixture
+
+  describe '#capture_output' do
+    context 'with puts' do
+      subject do
+        capture_output { puts 'test' }
+      end
+      it { is_expected.to eq "test\n" }
+      its(:stdout) { is_expected.to eq "test\n" }
+      its(:stderr) { is_expected.to eq '' }
+      its(:exitstatus) { is_expected.to eq 0 }
+    end # /context with puts
+
+    context 'with STDERR.puts' do
+      subject do
+        capture_output { STDERR.puts 'test' }
+      end
+      it { is_expected.to eq '' }
+      its(:stdout) { is_expected.to eq '' }
+      its(:stderr) { is_expected.to eq "test\n" }
+      its(:exitstatus) { is_expected.to eq 0 }
+    end # /context with STDERR.puts
+
+    context 'with $stderr.puts' do
+      subject do
+        capture_output { $stderr.puts 'test' }
+      end
+      it { is_expected.to eq '' }
+      its(:stdout) { is_expected.to eq '' }
+      its(:stderr) { is_expected.to eq "test\n" }
+      its(:exitstatus) { is_expected.to eq 0 }
+    end # /context with $stderr.puts
+
+    context 'with a subproc' do
+      subject do
+        capture_output do
+          # Can't use `` because that already captures stdout
+          if pid = Process.fork
+            Process.waitpid(pid)
+          else
+            exec('echo test')
+          end
+        end
+      end
+      it { is_expected.to eq "test\n" }
+      its(:stdout) { is_expected.to eq "test\n" }
+      its(:stderr) { is_expected.to eq '' }
+      its(:exitstatus) { is_expected.to eq 0 }
+    end # /context with a subproc
+
+    context 'with a subproc to stderr' do
+      subject do
+        capture_output { `echo test >&2` }
+      end
+      it { is_expected.to eq '' }
+      its(:stdout) { is_expected.to eq '' }
+      its(:stderr) { is_expected.to eq "test\n" }
+      its(:exitstatus) { is_expected.to eq 0 }
+    end # /context with a subproc
+  end # /describe #capture_output
 end

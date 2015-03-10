@@ -15,6 +15,7 @@
 #
 
 require 'fileutils'
+require 'tempfile'
 
 require 'rspec'
 require 'rspec/its'
@@ -76,8 +77,77 @@ module RSpecCommand
   #     command 'myapp write'
   #     it { is_expected.to match_fixture('write_data') }
   #   end
-  def match_fixture(fixture_path, local_path=nil)
-    MatchFixture.new(find_fixture(self.class.file_path), temp_path, fixture_path, local_path || fixture_path)
+  def match_fixture(fixture_path, local_path=fixture_path)
+    MatchFixture.new(find_fixture(self.class.file_path), temp_path, fixture_path, local_path)
+  end
+
+  # Run a local block with $stdout and $stderr redirected to a strings. Useful
+  # for running CLI code in unit tests. The returned string has `#stdout`,
+  # `#stderr` and `#exitstatus` attributes to emulate the output from {.command}.
+  #
+  # @param block [Proc] Code to run.
+  # @return [String]
+  # @example
+  #   describe 'my rake task' do
+  #     subject do
+  #       capture_output do
+  #         Rake::Task['mytask'].invoke
+  #       end
+  #     end
+  #   end
+  def capture_output(&block)
+  #   old_stdout = $stdout
+  #   old_stderr = $stderr
+  #   $stdout = StringIO.new('','w')
+  #   $stderr = StringIO.new('','w')
+  #   block.call
+  #   StdoutString.new($stdout.string, $stderr.string)
+  # ensure
+  #   $stdout = old_stdout
+  #   $stderr = old_stderr
+    old_stdout = $stdout.dup
+    old_stderr = $stderr.dup
+    Tempfile.open('capture_stdout') do |tmp_stdout|
+      Tempfile.open('capture_stderr') do |tmp_stderr|
+        $stdout.reopen(tmp_stdout)
+        $stdout.sync = true
+        $stderr.reopen(tmp_stderr)
+        $stderr.sync = true
+        block.call
+        # Rewind.
+        tmp_stdout.seek(0, 0)
+        tmp_stderr.seek(0, 0)
+        # Read in the output.
+        StdoutString.new(tmp_stdout.read, tmp_stderr.read)
+      end
+    end
+  ensure
+    $stdout.reopen(old_stdout)
+    $stderr.reopen(old_stderr)
+  end
+
+  # String subclass to make string output look kind of like Mixlib::Shellout.
+  #
+  # #@!visibility private
+  # #@api private
+  # @see capture_stdout
+  class StdoutString < String
+    def initialize(stdout, stderr)
+      super(stdout)
+      @stderr = stderr
+    end
+
+    def stdout
+      self
+    end
+
+    def stderr
+      @stderr
+    end
+
+    def exitstatus
+      0
+    end
   end
 
   private
