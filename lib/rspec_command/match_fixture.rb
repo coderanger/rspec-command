@@ -14,23 +14,40 @@
 # limitations under the License.
 #
 
+
 module RSpecCommand
-  # @!visibility private
+  # @api private
   # @since 1.0.0
   class MatchFixture
-    def initialize(fixture_root, local_root, fixture_path, local_path)
+    # Create a new matcher for a fixture.
+    #
+    # @param fixture_root [String] Absolute path to the fixture folder.
+    # @param local_root [String] Absolute path to test folder to compare against.
+    # @param fixture_path [String] Relative path to the fixture to compare against.
+    # @param local_path [String] Optional relative path to the test data to compare against.
+    def initialize(fixture_root, local_root, fixture_path, local_path=fixture_path)
       @fixture = FileList.new(fixture_root, fixture_path)
       @local = FileList.new(local_root, local_path)
     end
 
+    # Primary callback for RSpec matcher API.
+    #
+    # @param cmd Ignored.
+    # @return [Boolean]
     def matches?(cmd)
       files_match? && file_content_match?
     end
 
+    # Callback for RSpec. Returns a human-readable description for the matcher.
+    #
+    # @return [String]
     def description
       "match fixture #{@fixture.path}"
     end
 
+    # Callback fro RSpec. Returns a human-readable failure message.
+    #
+    # @return [String]
     def failure_message
       matching_files = @fixture.files & @local.files
       fixture_only_files = @fixture.files - @local.files
@@ -56,10 +73,16 @@ module RSpecCommand
 
     private
 
+    # Do the file entries match? Doesn't check content.
+    #
+    # @return [Boolean]
     def files_match?
       @fixture.files == @local.files
     end
 
+    # Do the file contents match?
+    #
+    # @return [Boolean]
     def file_content_match?
       @fixture.full_files.zip(@local.full_files).all? do |fixture_file, local_file|
         IO.read(fixture_file) == IO.read(local_file)
