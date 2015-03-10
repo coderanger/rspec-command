@@ -44,15 +44,10 @@ module RSpecCommand
     # @!attribute [r] rake
     # Return a loaded
     let(:rake) do
-      ::Rake::Application.new.tap do |rake|
-        ::Rake.application = rake
-        # Because #init reads from ARGV and will try to parse rspec's flags.
-        Rake._patch([], ARGV.clone, lambda {|v| ARGV.replace(v) }) do
+      Rake._rake_env(temp_path, _environment) do
+        ::Rake::Application.new.tap do |rake|
+          ::Rake.application = rake
           rake.init
-        end
-        # Can't use block form of chdir because that throws a warning when Rake
-        # chdir's internally.
-        Rake._rake_env(temp_path, _environment) do
           rake.load_rakefile
         end
       end
@@ -78,8 +73,13 @@ module RSpecCommand
     # @api private
     # @param block [Proc] Block to run in the patched environment.
     def self._rake_env(temp_path, environment, &block)
+      # Can't use block form of chdir because that throws a warning when Rake
+      # chdir's internally.
       Rake._patch(temp_path, Dir.pwd, lambda {|v| Dir.chdir(v) }) do
-        Rake._patch(ENV.to_hash.merge(environment), ENV.to_hash, lambda {|v| ENV.replace(v) }, &block)
+        Rake._patch(ENV.to_hash.merge(environment), ENV.to_hash, lambda {|v| ENV.replace(v) }) do
+          # Because #init reads from ARGV and will try to parse rspec's flags.
+          Rake._patch([], ARGV.clone, lambda {|v| ARGV.replace(v) }, &block)
+        end
       end
     end
 
