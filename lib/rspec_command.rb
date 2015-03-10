@@ -96,17 +96,11 @@ module RSpecCommand
   #     end
   #   end
   def capture_output(&block)
-  #   old_stdout = $stdout
-  #   old_stderr = $stderr
-  #   $stdout = StringIO.new('','w')
-  #   $stderr = StringIO.new('','w')
-  #   block.call
-  #   StdoutString.new($stdout.string, $stderr.string)
-  # ensure
-  #   $stdout = old_stdout
-  #   $stderr = old_stderr
     old_stdout = $stdout.dup
     old_stderr = $stderr.dup
+    # Potential future improvement is to use IO.pipe instead of temp files, but
+    # that would require threads or something to read contiuously since the
+    # buffer is only 64k on the kernel side.
     Tempfile.open('capture_stdout') do |tmp_stdout|
       Tempfile.open('capture_stderr') do |tmp_stderr|
         $stdout.reopen(tmp_stdout)
@@ -118,7 +112,7 @@ module RSpecCommand
         tmp_stdout.seek(0, 0)
         tmp_stderr.seek(0, 0)
         # Read in the output.
-        StdoutString.new(tmp_stdout.read, tmp_stderr.read)
+        OutputString.new(tmp_stdout.read, tmp_stderr.read)
       end
     end
   ensure
@@ -126,12 +120,12 @@ module RSpecCommand
     $stderr.reopen(old_stderr)
   end
 
-  # String subclass to make string output look kind of like Mixlib::Shellout.
+  # String subclass to make string output look kind of like Mixlib::ShellOut.
   #
   # #@!visibility private
   # #@api private
   # @see capture_stdout
-  class StdoutString < String
+  class OutputString < String
     def initialize(stdout, stderr)
       super(stdout)
       @stderr = stderr
