@@ -42,7 +42,12 @@ module RSpecCommand
   module Rake
     extend RSpec::SharedContext
     # @!attribute [r] rake
-    # Return a loaded
+    #   Return a loaded Rake::Application object that can be used to manipulate
+    #   Rake for this test. If no Rakefile is found this will raise `SystemExit`.
+    #   @return [Rake::Application]
+    #   @raises SystemExit If no Rakefile is found.
+    #   @example Access a Rake task
+    #   it { expect(rake['taskname']).to be_a Rake::Task }
     let(:rake) do
       Rake._rake_env(temp_path, _environment) do
         ::Rake::Application.new.tap do |rake|
@@ -101,7 +106,7 @@ module RSpecCommand
 
       def included(klass)
         super
-        # Pull this in as a dependency
+        # Pull this in as a dependency.
         klass.send(:include, RSpecCommand)
         klass.extend ClassMethods
       end
