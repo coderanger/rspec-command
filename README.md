@@ -117,6 +117,53 @@ describe 'myapp' do
 end
 ```
 
+## capture_output
+
+The `capture_output` helper lets you redirect the stdout and stderr of a block
+of code to strings. This includes any subprocesses or non-Ruby output. This can
+help with integration testing of CLI code without the overhead of running a full
+subprocess.
+
+The returned object behaves like a string containing the stdout output, but has
+`stdout`, `stderr`, and `exitstatus` attributes to simulate the object used by
+`command`. `exitstatus` will always be `0`.
+
+```ruby
+describe 'myapp' do
+  subject do
+    capture_output do
+      MyApp::CLI.run('show')
+    end
+  end
+  its(:stdout) { is_expected.to include 'Entry:' }
+end
+```
+
+## RSpecCommand::Rake
+
+The `RSpecCommand::Rake` helper is an optional module you can include in your
+example groups to test Rake tasks without the overhead of running Rake in a full
+subprocess.
+
+```ruby
+require 'rspec_command'
+
+RSpec.configure do |config|
+  config.include RSpecCommand::Rake
+end
+
+describe 'rake myapp' do
+  rake_task 'myapp'
+  rakefile <<-EOH
+require 'myapp'
+task 'myapp' do
+  MyApp.rake_task
+end
+EOH
+  its(:stdout) { is_expected.to include 'Initialized new project' }
+end
+```
+
 ## License
 
 Copyright 2015, Noah Kantrowitz
