@@ -24,6 +24,7 @@ require 'rspec_command/match_fixture'
 
 # An RSpec helper module for testing command-line tools.
 #
+# @api public
 # @since 1.0.0
 # @example Enable globally
 #   RSpec.configure do |config|
@@ -45,23 +46,24 @@ module RSpecCommand
   end
 
   # @!attribute [r] temp_path
-  # Path to the temporary directory created for the current example.
-  # @return [String]
+  #   Path to the temporary directory created for the current example.
+  #   @return [String]
   let(:temp_path) do |example|
     example.metadata[:rspec_command_temp_path]
   end
 
   # @!attribute [r] fixture_root
-  # Base path for the fixtures directory. Default value is 'fixtures'.
-  # @return [String]
-  # @example
-  #   let(:fixture_root) { 'data' }
+  #   Base path for the fixtures directory. Default value is 'fixtures'.
+  #   @return [String]
+  #   @example
+  #     let(:fixture_root) { 'data' }
   let(:fixture_root) { 'fixtures' }
 
   # @!attribute [r] _environment
-  # @!visibility private
-  # Accumulator for environment variables.
-  # @see RSpecCommand.environment
+  #   @!visibility private
+  #   @api private
+  #   Accumulator for environment variables.
+  #   @see RSpecCommand.environment
   let(:_environment) { Hash.new }
 
   # Matcher to compare files or folders from the temporary directory to a
