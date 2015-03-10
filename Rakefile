@@ -21,6 +21,7 @@ RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = [].tap do |a|
     a << '--color'
     a << '--format Fuubar'
+    a << '--backtrace' if ENV['DEBUG']
   end.join(' ')
 end
 
