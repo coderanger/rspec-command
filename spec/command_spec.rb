@@ -261,4 +261,13 @@ describe RSpecCommand do
       its(:exitstatus) { is_expected.to eq 0 }
     end # /context with a subproc
   end # /describe #capture_output
+
+  describe RSpecCommand::OutputString do
+    subject { described_class.new('testout', 'testerr') }
+    it { is_expected.to be_a String }
+    it { is_expected.to eq 'testout' }
+    its(:stdout) { is_expected.to eq 'testout' }
+    its(:stderr) { is_expected.to eq 'testerr' }
+    its(:exitstatus) { is_expected.to eq 0 }
+  end # /describe RSpecCommand::OutputString
 end
