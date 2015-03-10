@@ -21,6 +21,8 @@ require 'rspec/its'
 require 'mixlib/shellout'
 
 require 'rspec_command/match_fixture'
+require 'rspec_command/rake'
+
 
 # An RSpec helper module for testing command-line tools.
 #
