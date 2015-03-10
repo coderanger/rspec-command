@@ -52,7 +52,7 @@ The subject will be set to a `Mixlib::ShellOut` object so you can use
 ```ruby
 describe 'myapp' do
   command 'myapp --version'
-  its(:stdout) { is_expected.to include('1.0.0') }
+  its(:stdout) { is_expected.to include '1.0.0' }
   its(:stderr) { is_expected.to eq '' }
   its(:exitstatus) { is_expected.to eq 0 }
 end
@@ -72,7 +72,7 @@ EOH
   file 'data2.txt' do
     "another thing #{Time.now}"
   end
-  its(:stdout) { is_expected.to include('2 files imported') }
+  its(:stdout) { is_expected.to include '2 files imported' }
 end
 ```
 
@@ -85,7 +85,7 @@ temporary directory:
 describe 'myapp' do
   command 'myapp read entries/'
   fixture_file 'entries'
-  its(:stdout) { is_expected.to include('4 files imported') }
+  its(:stdout) { is_expected.to include '4 files imported' }
 end
 ```
 
@@ -101,7 +101,7 @@ The `environment` method sets environment variables for subprocesses run by
 describe 'myapp' do
   command 'myapp show'
   environment MYAPP_DEBUG: true
-  its(:stderr) { is_expected.to include('[debug]') }
+  its(:stderr) { is_expected.to include '[debug]' }
 end
 ```
 
@@ -113,7 +113,7 @@ against a fixture:
 ```ruby
 describe 'myapp' do
   command 'myapp write'
-  it { is_expected.to match_fixture('write_data') }
+  it { is_expected.to match_fixture 'write_data' }
 end
 ```
 
