@@ -101,7 +101,8 @@ module RSpecCommand
 
       def included(klass)
         super
-        klass.include RSpecCommand
+        # Pull this in as a dependency
+        klass.send(:include, RSpecCommand)
         klass.extend ClassMethods
       end
     end
