@@ -40,54 +40,6 @@ module RSpecCommand
   #     its(:stdout) { it_expected.to include('1.0.0') }
   #   end
   module Rake
-    extend RSpec::SharedContext
-    # @!attribute [r] rake
-    #   Return a loaded Rake::Application object that can be used to manipulate
-    #   Rake for this test. If no Rakefile is found this will raise `SystemExit`.
-    #   @return [Rake::Application]
-    #   @raises SystemExit If no Rakefile is found.
-    #   @example Access a Rake task
-    #     it { expect(rake['taskname']).to be_a Rake::Task }
-    let(:rake) do
-      Rake._rake_env(temp_path, _environment) do
-        ::Rake::Application.new.tap do |rake|
-          ::Rake.application = rake
-          rake.init
-          rake.load_rakefile
-        end
-      end
-    end
-
-    # Patch some kind of global value in a mildly safe way.
-    #
-    # @api private
-    # @param val [Object] Value to set for the duration of the block.
-    # @param get [Proc, Object] Callable to get the current value or the current value itself.
-    # @param set [Proc] Callable to set the value. Should take one argument.
-    # @param block [Proc] Block to run with the patch.
-    def self._patch(val, get, set, &block)
-      old = get.is_a?(Proc) ? get.call : get
-      set.call(val)
-      block.call
-    ensure
-      set.call(old)
-    end
-
-    # Patch various things to setup the fake rake environment.
-    #
-    # @api private
-    # @param block [Proc] Block to run in the patched environment.
-    def self._rake_env(temp_path, environment, &block)
-      # Can't use block form of chdir because that throws a warning when Rake
-      # chdir's internally.
-      Rake._patch(temp_path, Dir.pwd, lambda {|v| Dir.chdir(v) }) do
-        Rake._patch(ENV.to_hash.merge(environment), ENV.to_hash, lambda {|v| ENV.replace(v) }) do
-          # Because #init reads from ARGV and will try to parse rspec's flags.
-          Rake._patch([], ARGV.clone, lambda {|v| ARGV.replace(v) }, &block)
-        end
-      end
-    end
-
     # @!classmethods
     module ClassMethods
       # Run a Rake task as the subject of this example group. The subject will
@@ -105,10 +57,25 @@ module RSpecCommand
       def rake_task(name, *args)
         metadata[:rake] = true
         subject do
-          Rake._rake_env(temp_path, _environment) do
-            capture_output do
+          exitstatus = []
+          capture_output do
+            Process.waitpid fork {
+              # :nocov:
+              # Because #init reads from ARGV and will try to parse rspec's flags.
+              ARGV.replace([])
+              Dir.chdir(temp_path)
+              ENV.update(_environment)
+              rake = ::Rake::Application.new.tap do |rake|
+                ::Rake.application = rake
+                rake.init
+                rake.load_rakefile
+              end
               rake[name].invoke(*args)
-            end
+            }
+            exitstatus << $?.exitstatus
+            # :nocov:
+          end.tap do |output|
+            output.define_singleton_method(:exitstatus) { exitstatus.first }
           end
         end
       end

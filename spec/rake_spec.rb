@@ -19,28 +19,9 @@ require 'spec_helper'
 describe RSpecCommand::Rake do
   include RSpecCommand::Rake
 
-  describe '#rake' do
-    context 'with a task' do
-      file 'Rakefile', "task 'mytask'\n"
-      subject { rake }
-      it { is_expected.to be_a Rake::Application }
-      its(['mytask']) { is_expected.to be_a Rake::Task }
-    end # /context with a task
-
-    context 'with no rakefile' do
-      subject do
-        # This prints a warning to stderr that I don't care about, I just need
-        # the exception.
-        capture_output { rake }
-      end
-      it { expect { subject }.to raise_error(SystemExit) }
-    end # /context with no rakefile
-  end # /describe #rake
-
   describe '#rakefile' do
     rakefile "task 'mytask'\n"
     it { expect(File.exists?(File.join(temp_path, 'Rakefile'))).to eq true }
-    it { expect(rake).to be_truthy }
   end # /describe #rakefile
 
   describe '#rake_task' do
@@ -65,5 +46,14 @@ EOH
       its(:stdout) { is_expected.to include "envvar\n" }
       it { expect(ENV['MYVAR']).to be_nil }
     end # /context with an environment variable
-  end
+
+    context 'regression test for require-based Rakefiles and multiple tests' do
+      file 'mytask.rb', 'task :mytask do puts "complete" end'
+      rakefile '$:.unshift(File.dirname(__FILE__)); require "mytask"'
+      rake_task 'mytask'
+      # Run twice to force the bug.
+      its(:stdout) { is_expected.to include "complete\n" }
+      its(:stdout) { is_expected.to include "complete\n" }
+    end
+  end # /describe #rake_task
 end
