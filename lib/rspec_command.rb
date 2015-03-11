@@ -107,12 +107,30 @@ module RSpecCommand
         $stdout.sync = true
         $stderr.reopen(tmp_stderr)
         $stderr.sync = true
-        block.call
-        # Rewind.
-        tmp_stdout.seek(0, 0)
-        tmp_stderr.seek(0, 0)
-        # Read in the output.
-        OutputString.new(tmp_stdout.read, tmp_stderr.read)
+        output = nil
+        begin
+          # Inner block to make sure the ensure happens first.
+          begin
+            block.call
+          ensure
+            # Rewind.
+            tmp_stdout.seek(0, 0)
+            tmp_stderr.seek(0, 0)
+            # Read in the output.
+            output = OutputString.new(tmp_stdout.read, tmp_stderr.read)
+          end
+        rescue Exception => e
+          if output
+            # Try to add the output so far as an attribute on the exception via
+            # a closure.
+            e.define_singleton_method(:output_so_far) do
+              output
+            end
+          end
+          raise
+        else
+          output
+        end
       end
     end
   ensure
