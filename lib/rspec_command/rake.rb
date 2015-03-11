@@ -47,7 +47,7 @@ module RSpecCommand
     #   @return [Rake::Application]
     #   @raises SystemExit If no Rakefile is found.
     #   @example Access a Rake task
-    #   it { expect(rake['taskname']).to be_a Rake::Task }
+    #     it { expect(rake['taskname']).to be_a Rake::Task }
     let(:rake) do
       Rake._rake_env(temp_path, _environment) do
         ::Rake::Application.new.tap do |rake|
@@ -90,6 +90,18 @@ module RSpecCommand
 
     # @!classmethods
     module ClassMethods
+      # Run a Rake task as the subject of this example group. The subject will
+      # be a string returned by {#capture_output}.
+      #
+      # @param name [String] Name of the task to execute.
+      # @param args [Array<Object>] Arguments to pass to the task.
+      # @return [void]
+      # @example
+      #   describe 'mytask' do
+      #     rakefile 'require "myapp/rake_tasks"'
+      #     rake_task 'mytask'
+      #     its(:stdout) { is_expected.to include 'Complete!' }
+      #   end
       def rake_task(name, *args)
         subject do
           Rake._rake_env(temp_path, _environment) do
@@ -100,6 +112,22 @@ module RSpecCommand
         end
       end
 
+      # Write out a Rakefile to the temporary directory for this example group.
+      # Content can be passed as either a string or a block.
+      #
+      # @param content [String] Rakefile content.
+      # @param block [Proc] Optional block to return the Rakefile content.
+      # @return [void]
+      # @example
+      #   describe 'mytask' do
+      #     rakefile <<-EOH
+      #   task 'mytask' do
+      #     ...
+      #   end
+      #   EOH
+      #     rake_task 'mytask'
+      #     its(:stdout) { is_expected.to include 'Complete!' }
+      #   end
       def rakefile(content=nil, &block)
         file('Rakefile', content, &block)
       end

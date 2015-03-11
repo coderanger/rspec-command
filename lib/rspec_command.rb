@@ -122,8 +122,7 @@ module RSpecCommand
 
   # String subclass to make string output look kind of like Mixlib::ShellOut.
   #
-  # #@!visibility private
-  # #@api private
+  # @api private
   # @see capture_stdout
   class OutputString < String
     def initialize(stdout, stderr)
