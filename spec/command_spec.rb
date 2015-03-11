@@ -260,6 +260,27 @@ describe RSpecCommand do
       its(:stderr) { is_expected.to eq "test\n" }
       its(:exitstatus) { is_expected.to eq 0 }
     end # /context with a subproc
+
+    context 'with a block that raises an exception' do
+      subject do
+        capture_output do
+          puts 'before'
+          raise 'OMG'
+          puts 'after'
+        end
+      end
+      it { expect { subject }.to raise_error }
+      it do
+        begin
+          subject
+        rescue Exception => e
+          expect(e).to respond_to(:output_so_far)
+          expect(e.output_so_far).to eq "before\n"
+        else
+          raise 'Subject did not raise exception'
+        end
+      end
+    end # /context with a block that raises an exception
   end # /describe #capture_output
 
   describe RSpecCommand::OutputString do
