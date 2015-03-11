@@ -60,7 +60,12 @@ module RSpecCommand
           exitstatus = []
           capture_output do
             Process.waitpid fork {
+              # This has to be nocov because simpldecov doesn't track across fork.
               # :nocov:
+              # Defang SimpleCov so it doesn't print its stuff.
+              if defined?(SimpleCov)
+                SimpleCov.at_exit { SimpleCov.instance_variable_set(:@result, nil) }
+              end
               # Because #init reads from ARGV and will try to parse rspec's flags.
               ARGV.replace([])
               Dir.chdir(temp_path)
