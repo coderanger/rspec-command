@@ -103,6 +103,7 @@ module RSpecCommand
       #     its(:stdout) { is_expected.to include 'Complete!' }
       #   end
       def rake_task(name, *args)
+        metadata[:rake] = true
         subject do
           Rake._rake_env(temp_path, _environment) do
             capture_output do
