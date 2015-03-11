@@ -21,9 +21,6 @@ require 'rspec'
 require 'rspec/its'
 require 'mixlib/shellout'
 
-require 'rspec_command/match_fixture'
-require 'rspec_command/rake'
-
 
 # An RSpec helper module for testing command-line tools.
 #
@@ -40,6 +37,9 @@ require 'rspec_command/rake'
 #   end
 module RSpecCommand
   extend RSpec::SharedContext
+
+  autoload :MatchFixture, 'rspec_command/match_fixture'
+  autoload :Rake, 'rspec_command/rake'
 
   around do |example|
     Dir.mktmpdir('rspec_command') do |path|
