@@ -62,7 +62,9 @@ module RSpecCommand
             Process.waitpid fork {
               # This has to be nocov because simpldecov doesn't track across fork.
               # :nocov:
-              # Defang SimpleCov so it doesn't print its stuff.
+              # Defang SimpleCov so it doesn't print its stuff. Can be removed
+              # when https://github.com/colszowka/simplecov/pull/377 is in a
+              # released version.
               if defined?(SimpleCov)
                 SimpleCov.at_exit { SimpleCov.instance_variable_set(:@result, nil) }
               end
