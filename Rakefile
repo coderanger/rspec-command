@@ -17,11 +17,12 @@
 require 'bundler/gem_tasks'
 
 require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new(:spec) do |t|
+RSpec::Core::RakeTask.new(:spec, :tag) do |t, args|
   t.rspec_opts = [].tap do |a|
     a << '--color'
     a << '--format Fuubar'
     a << '--backtrace' if ENV['DEBUG']
+    a << "--tag #{args[:tag]}" if args[:tag]
   end.join(' ')
 end
 
