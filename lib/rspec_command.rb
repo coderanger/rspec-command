@@ -69,6 +69,48 @@ module RSpecCommand
   #   @see RSpecCommand.environment
   let(:_environment) { Hash.new }
 
+  # Run a command.
+  #
+  # @see .command
+  # @param cmd [String, Array] Command to run. If passed as an array, no shell
+  #   expansion will be performed.
+  # @param options [Hash<Symbol, Object>] Options to pass to
+  #   Mixlib::ShellOut.new.
+  # @option options [Boolean] allow_error If true, don't raise an error on
+  #   failed commands.
+  # @return [Mixlib::ShellOut]
+  # @example
+  #   before do
+  #     command('git init')
+  #   end
+  def command(cmd, options={})
+    # Try to find a Gemfile
+    gemfile_path = find_file(self.class.file_path, 'Gemfile')
+    gemfile_environment = gemfile_path ? {'BUNDLE_GEMFILE' => gemfile_path} : {}
+    # Create the command
+    allow_error = options.delete(:allow_error)
+    full_cmd = if gemfile_path
+      if cmd.is_a?(Array)
+        %w{bundle exec} + cmd
+      else
+        "bundle exec #{cmd}"
+      end
+    else
+      cmd
+    end
+    Mixlib::ShellOut.new(
+      full_cmd,
+      {
+        cwd: temp_path,
+        environment: gemfile_environment.merge(_environment),
+      }.merge(options),
+    ).tap do |cmd|
+      # Run the command
+      cmd.run_command
+      cmd.error! unless allow_error
+    end
+  end
+
   # Matcher to compare files or folders from the temporary directory to a
   # fixture.
   #
@@ -217,8 +259,9 @@ module RSpecCommand
     # as a string, array, or block. The subject will be a Mixlib::ShellOut
     # object, all attributes from there will work with rspec-its.
     #
+    # @see #command
     # @param cmd [String, Array] Command to run. If passed as an array, no shell
-    #   expansion will be done.
+    #   expansion will be performed.
     # @param options [Hash<Symbol, Object>] Options to pass to
     #   Mixlib::ShellOut.new.
     # @param block [Proc] Optional block to return a command to run.
@@ -233,31 +276,7 @@ module RSpecCommand
       subject do |example|
         # If a block is given, use it to get the command.
         cmd = block.call if block
-        # Try to find a Gemfile
-        gemfile_path = find_file(example.file_path, 'Gemfile')
-        gemfile_environment = gemfile_path ? {'BUNDLE_GEMFILE' => gemfile_path} : {}
-        # Create the command
-        allow_error = options.delete(:allow_error)
-        full_cmd = if gemfile_path
-          if cmd.is_a?(Array)
-            %w{bundle exec} + cmd
-          else
-            "bundle exec #{cmd}"
-          end
-        else
-          cmd
-        end
-        Mixlib::ShellOut.new(
-          full_cmd,
-          {
-            cwd: temp_path,
-            environment: gemfile_environment.merge(_environment),
-          }.merge(options),
-        ).tap do |cmd|
-          # Run the command
-          cmd.run_command
-          cmd.error! unless allow_error
-        end
+        command(cmd, options)
       end
     end
 
