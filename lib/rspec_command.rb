@@ -273,6 +273,7 @@ module RSpecCommand
     #     its(:stdout) { is_expected.to match(/a thing/) }
     #   end
     def command(cmd=nil, options={}, &block)
+      metadata[:command] = true
       subject do |example|
         # If a block is given, use it to get the command.
         cmd = block.call if block
