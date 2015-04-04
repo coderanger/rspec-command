@@ -60,7 +60,7 @@ module RSpecCommand
           exitstatus = []
           capture_output do
             Process.waitpid fork {
-              # This has to be nocov because simpldecov doesn't track across fork.
+              # This has to be nocov because simplecov doesn't track across fork.
               # :nocov:
               # Defang SimpleCov so it doesn't print its stuff. Can be removed
               # when https://github.com/colszowka/simplecov/pull/377 is in a
