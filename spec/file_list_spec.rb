@@ -46,7 +46,7 @@ describe RSpecCommand::MatchFixture::FileList do
     let(:path) { 'sub' }
     before { write('sub/one.txt'); write('sub/two.txt') }
     its(:full_path) { is_expected.to eq File.join(temp_path, 'sub') }
-    its(:files) { is_expected.to eq ['sub/one.txt', 'sub/two.txt'] }
+    its(:files) { is_expected.to eq ['one.txt', 'two.txt'] }
     its(:full_files) do
       is_expected.to eq [
         File.join(temp_path, 'sub/one.txt'),
@@ -56,7 +56,51 @@ describe RSpecCommand::MatchFixture::FileList do
   end # /context with a folder
 
   describe '#relative' do
-    subject { described_class.new('/test', nil).relative('/test/data.txt') }
-    it { is_expected.to eq 'data.txt' }
+    let(:file) { }
+    let(:root) { File.join(temp_path, file) }
+    let(:path) { nil }
+    before { write(file) }
+    subject { described_class.new(root, path).relative(File.join(temp_path, file)) }
+
+    context 'with a single file' do
+      let(:file) { 'data.txt' }
+      it { is_expected.to eq 'data.txt' }
+    end # /context with a single file
+
+    context 'with a nested file' do
+      let(:file) { 'data/inner.txt' }
+      it { is_expected.to eq 'inner.txt' }
+    end # /context with a nested file
+
+    context 'with a folder root' do
+      let(:file) { 'data/inner.txt' }
+      let(:root) { temp_path }
+      it { is_expected.to eq 'data/inner.txt' }
+    end # /context with a folder root
   end # /describe #relative
+
+  describe '#absolute' do
+    let(:file) { }
+    let(:root) { File.join(temp_path, file) }
+    let(:path) { nil }
+    before { write(file) }
+    subject { described_class.new(root, path).absolute(file) }
+
+    context 'with a single file' do
+      let(:file) { 'data.txt' }
+      it { is_expected.to eq File.join(temp_path, 'data.txt') }
+    end # /context with a single file
+
+    context 'with a nested file' do
+      let(:file) { 'inner.txt' }
+      let(:root) { File.join(temp_path, 'data', 'inner.txt') }
+      it { is_expected.to eq File.join(temp_path, 'data', 'inner.txt') }
+    end # /context with a nested file
+
+    context 'with a folder root' do
+      let(:file) { 'data/inner.txt' }
+      let(:root) { temp_path }
+      it { is_expected.to eq File.join(temp_path, 'data', 'inner.txt') }
+    end # /context with a folder root
+  end # /describe #absolute
 end

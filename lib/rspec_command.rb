@@ -119,7 +119,7 @@ module RSpecCommand
   #     command 'myapp write'
   #     it { is_expected.to match_fixture('write_data') }
   #   end
-  def match_fixture(fixture_path, local_path=fixture_path)
+  def match_fixture(fixture_path, local_path=nil)
     MatchFixture.new(find_fixture(self.class.file_path), temp_path, fixture_path, local_path)
   end
 

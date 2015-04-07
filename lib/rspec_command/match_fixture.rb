@@ -25,7 +25,7 @@ module RSpecCommand
     # @param local_root [String] Absolute path to test folder to compare against.
     # @param fixture_path [String] Relative path to the fixture to compare against.
     # @param local_path [String] Optional relative path to the test data to compare against.
-    def initialize(fixture_root, local_root, fixture_path, local_path=fixture_path)
+    def initialize(fixture_root, local_root, fixture_path, local_path=nil)
       @fixture = FileList.new(fixture_root, fixture_path)
       @local = FileList.new(local_root, local_path)
     end
@@ -55,17 +55,27 @@ module RSpecCommand
       buf = "expected fixture #{@fixture.path} to match files:\n"
       (@fixture.files | @local.files).sort.each do |file|
         if matching_files.include?(file)
-          actual = IO.read(File.join(@local.root, file))
-          expected = IO.read(File.join(@fixture.root, file))
-          if actual != expected
-            # Show a diff
-            buf << "  #{file} does not match fixture:"
-            buf << differ.diff(actual, expected).split(/\n/).map {|line| '    '+line }.join("\n")
+          local_file = @local.absolute(file)
+          fixture_file = @fixture.absolute(file)
+          if File.directory?(local_file) && File.directory?(fixture_file)
+            # Do nothing
+          elsif File.directory?(fixture_file)
+            buf << "  #{file} should be a directory\n"
+          elsif File.directory?(local_file)
+            buf << "  #{file} should not be a directory"
+          else
+            actual = IO.read(local_file)
+            expected = IO.read(fixture_file)
+            if actual != expected
+              # Show a diff
+              buf << "  #{file} does not match fixture:"
+              buf << differ.diff(actual, expected).split(/\n/).map {|line| '    '+line }.join("\n")
+            end
           end
         elsif fixture_only_files.include?(file)
-          buf << "  #{file} is not found in files\n"
+          buf << "  #{file} is not found\n"
         elsif local_only_files.include?(file)
-          buf << "  #{file} is not found in fixture\n"
+          buf << "  #{file} should not exist\n"
         end
       end
       buf
@@ -85,7 +95,11 @@ module RSpecCommand
     # @return [Boolean]
     def file_content_match?
       @fixture.full_files.zip(@local.full_files).all? do |fixture_file, local_file|
-        IO.read(fixture_file) == IO.read(local_file)
+        if File.directory?(fixture_file)
+          File.directory?(local_file)
+        else
+          !File.directory?(local_file) && IO.read(fixture_file) == IO.read(local_file)
+        end
       end
     end
 
@@ -111,7 +125,7 @@ module RSpecCommand
 
       # Absolute path to the target.
       def full_path
-        @full_path ||= File.join(root, path)
+        @full_path ||= path ? File.join(root, path) : root
       end
 
       # Absolute paths to target files that exist.
@@ -130,7 +144,20 @@ module RSpecCommand
 
       # Convert an absolute path to a relative one
       def relative(file)
-        file[root.length+1..-1]
+        if File.directory?(full_path)
+          file[full_path.length+1..-1]
+        else
+          File.basename(file)
+        end
+      end
+
+      # Convert a relative path to an absolute one.
+      def absolute(file)
+        if File.directory?(full_path)
+          File.join(full_path, file)
+        else
+          full_path
+        end
       end
     end
 
