@@ -276,7 +276,7 @@ module RSpecCommand
       metadata[:command] = true
       subject do |example|
         # If a block is given, use it to get the command.
-        cmd = block.call if block
+        cmd = instance_eval(&block) if block
         command(cmd, options)
       end
     end
@@ -297,7 +297,7 @@ module RSpecCommand
     def file(path, content=nil, &block)
       raise "file path should be relative the the temporary directory." if path == File.expand_path(path)
       before do
-        content = block.call if block
+        content = instance_eval(&block) if block
         dest_path = File.join(temp_path, path)
         FileUtils.mkdir_p(File.dirname(dest_path))
         IO.write(dest_path, content)
