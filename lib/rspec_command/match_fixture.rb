@@ -118,7 +118,7 @@ module RSpecCommand
 
       # @param root [String] Absolute path to the root of the files.
       # @param path [String] Relative path to the specific files.
-      def initialize(root, path)
+      def initialize(root, path=nil)
         @root = root
         @path = path
       end

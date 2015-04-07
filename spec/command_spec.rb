@@ -114,8 +114,8 @@ describe RSpecCommand do
 
     context 'with a directory fixture' do
       fixture_file 'sub'
-      it { expect(read_temp('sub/sub1.txt')).to eq "Subfixture 1.\n" }
-      it { expect(read_temp('sub/sub2.txt')).to eq "Subfixture 2.\n" }
+      it { expect(read_temp('sub1.txt')).to eq "Subfixture 1.\n" }
+      it { expect(read_temp('sub2.txt')).to eq "Subfixture 2.\n" }
     end # /context with a directory fixture
 
     context 'with a different dest' do
@@ -127,6 +127,13 @@ describe RSpecCommand do
     context 'with an absolute path' do
       it { expect { self.class.fixture_file('/data', '') }.to raise_error }
     end # /context with an absolute path
+
+    context 'with a nested directory fixture' do
+      fixture_file 'sub_nested'
+      it { expect(read_temp('sub_nested.txt')).to eq "Subfixture nested.\n" }
+      it { expect(read_temp('sub_inner/sub_inner1.txt')).to eq "Subfixture inner 1.\n" }
+      it { expect(read_temp('sub_inner/sub_inner2.txt')).to eq "Subfixture inner 2.\n" }
+    end # /context with a nested directory fixture
   end # /describe #fixture_file
 
   describe '#environment' do

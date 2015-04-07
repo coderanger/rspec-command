@@ -320,8 +320,17 @@ module RSpecCommand
       raise "file path should be relative the the temporary directory." if path == File.expand_path(path)
       before do |example|
         fixture_path = find_fixture(example.file_path, path)
-        dest_path = File.join(temp_path, dest || path)
-        FileUtils.cp_r(fixture_path, dest_path)
+        dest_path = dest ? File.join(temp_path, dest) : temp_path
+        FileUtils.mkdir_p(dest_path)
+        file_list = MatchFixture::FileList.new(fixture_path)
+        file_list.files.each do |file|
+          abs = file_list.absolute(file)
+          if File.directory?(abs)
+            FileUtils.mkdir_p(File.join(dest_path, file))
+          else
+            FileUtils.copy(abs , File.join(dest_path, file), preserve: true)
+          end
+        end
       end
     end
 
