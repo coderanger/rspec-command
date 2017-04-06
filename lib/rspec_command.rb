@@ -105,10 +105,10 @@ module RSpecCommand
         cwd: temp_path,
         environment: gemfile_environment.merge(_environment),
       }.merge(options),
-    ).tap do |cmd|
+    ).tap do |cmd_out|
       # Run the command
-      cmd.run_command
-      cmd.error! unless allow_error
+      cmd_out.run_command
+      cmd_out.error! unless allow_error
     end
   end
 
@@ -347,7 +347,11 @@ module RSpecCommand
     def environment(variables)
       before do
         variables.each do |key, value|
-          _environment[key.to_s] = value.to_s
+          if value.nil?
+            _environment.delete(key.to_s)
+          else
+            _environment[key.to_s] = value.to_s
+          end
         end
       end
     end
