@@ -88,6 +88,7 @@ module RSpecCommand
     gemfile_path = ENV['BUNDLE_GEMFILE'] || find_file(self.class.file_path, 'Gemfile')
     gemfile_environment = gemfile_path ? {'BUNDLE_GEMFILE' => gemfile_path} : {}
     # Create the command
+    options = options.dup
     allow_error = options.delete(:allow_error)
     full_cmd = if gemfile_path
       if cmd.is_a?(Array)
