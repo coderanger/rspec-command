@@ -131,7 +131,7 @@ module RSpecCommand
       # Absolute paths to target files that exist.
       def full_files
         @full_files ||= if File.directory?(full_path)
-          Dir[File.join(full_path, '**', '*')].sort
+          Dir.glob(File.join(full_path, '**', '*'), File::FNM_DOTMATCH).sort
         else
           [full_path].select {|path| File.exist?(path) }
         end
