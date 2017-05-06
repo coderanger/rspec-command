@@ -101,7 +101,7 @@ describe RSpecCommand do
     end # /context with a subfolder
 
     context 'with an absolute path' do
-      it { expect { self.class.file('/data', '') }.to raise_error }
+      it { expect { self.class.file('/data', '') }.to raise_error RuntimeError }
     end # /context with an absolute path
   end # /describe #file
 
@@ -125,7 +125,7 @@ describe RSpecCommand do
     end # /context with a different dest
 
     context 'with an absolute path' do
-      it { expect { self.class.fixture_file('/data', '') }.to raise_error }
+      it { expect { self.class.fixture_file('/data', '') }.to raise_error RuntimeError }
     end # /context with an absolute path
 
     context 'with a nested directory fixture' do
@@ -276,7 +276,7 @@ describe RSpecCommand do
           puts 'after'
         end
       end
-      it { expect { subject }.to raise_error }
+      it { expect { subject }.to raise_error RuntimeError }
       it do
         begin
           subject
