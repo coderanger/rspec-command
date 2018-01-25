@@ -44,7 +44,9 @@ so the results of one test won't affect others.
 
 `command` also optionally takes a hash of options to pass through to
 `Mixlib::ShellOut.new`. Some common options include `:input` to provide data on
-stdin and `:timeout` to change the execution timeout.
+stdin and `:timeout` to change the execution timeout. The option `allow_error`
+is not passed through to the underlying `ShellOut`, but should be set to `true`
+to avoid raising an exception if the command fails.
 
 The subject will be set to a `Mixlib::ShellOut` object so you can use
 `rspec-its` to check individual attributes:
